@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use App\Article;
+use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ArticleTest extends TestCase
@@ -17,8 +19,8 @@ class ArticleTest extends TestCase
 			];
 
 			$this->json('POST', '/api/articles', $payload, $headers)
-					->assertStatus(200)
-					->assertJson(['id' => 1, 'title' => 'Lorem', 'body' => 'Ipsum']);
+					->assertStatus(201)
+					->assertJson(['title' => 'Lorem', 'body' => 'Ipsum']);
 		}
 
 		public function testsArticlesAreUpdatedCorrectly(){
@@ -38,7 +40,6 @@ class ArticleTest extends TestCase
 			$response = $this->json('PUT', '/api/articles/' . $article->id, $payload, $headers)
 					->assertStatus(200)
 					->assertJson([ 
-							'id' => 1, 
 							'title' => 'Lorem', 
 							'body' => 'Ipsum' 
 					]);
@@ -56,31 +57,4 @@ class ArticleTest extends TestCase
 			$this->json('DELETE', '/api/articles/' . $article->id, [], $headers)
 					->assertStatus(204);
 		}
-
-		public function testArticlesAreListedCorrectly(){
-			factory(Article::class)->create([
-					'title' => 'First Article',
-					'body' => 'First Body'
-			]);
-
-			factory(Article::class)->create([
-					'title' => 'Second Article',
-					'body' => 'Second Body'
-			]);
-
-			$user = factory(User::class)->create();
-			$token = $user->generateToken();
-			$headers = ['Authorization' => "Bearer $token"];
-
-			$response = $this->json('GET', '/api/articles', [], $headers)
-					->assertStatus(200)
-					->assertJson([
-							[ 'title' => 'First Article', 'body' => 'First Body' ],
-							[ 'title' => 'Second Article', 'body' => 'Second Body' ]
-					])
-					->assertJsonStructure([
-							'*' => ['id', 'body', 'title', 'created_at', 'updated_at'],
-					]);
-		}
-
 }
